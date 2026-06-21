@@ -1,0 +1,1130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#eef2f6">
+<title>TOUCHLINE — FC 26 Companion & Friday Night Ops</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+/* ============================ TOKENS ============================ */
+:root{
+  --bg:#eef2f6; --bg2:#e6ecf2; --panel:#ffffff; --panel-2:#fbfcfe;
+  --line:rgba(30,46,62,.10); --line-2:rgba(30,46,62,.17);
+  --txt:#1d2c3a; --muted:#5a6b7b; --faint:#8b9aa8;
+  --acc:#2f6fb0; --acc-d:#255a91; --acc-ink:#ffffff;
+  --acc-soft:#e9f1f9;
+  --acc-glow:rgba(47,111,176,.20);
+  --gold:#2f6fb0; --blue:#3d7fc0; --rose:#c2566a;
+  --radius:16px;
+  /* emil easing curves */
+  --ease-out:cubic-bezier(.23,1,.32,1);
+  --ease-io:cubic-bezier(.77,0,.175,1);
+  --ease-drawer:cubic-bezier(.32,.72,0,1);
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{
+  background:
+    radial-gradient(900px 520px at 84% -10%, rgba(47,111,176,.08), transparent 62%),
+    radial-gradient(760px 560px at -6% 4%, rgba(47,111,176,.07), transparent 55%),
+    var(--bg);
+  color:var(--txt);
+  font-family:'Outfit',system-ui,-apple-system,sans-serif;
+  font-size:15px; line-height:1.5; letter-spacing:.1px;
+  min-height:100dvh; -webkit-font-smoothing:antialiased;
+  text-rendering:optimizeLegibility;
+}
+.mono{font-family:'JetBrains Mono',ui-monospace,monospace;font-variant-numeric:tabular-nums}
+::selection{background:var(--acc);color:var(--acc-ink)}
+button{font-family:inherit}
+input{font-family:inherit}
+h1,h2,h3,h4{margin:0;font-weight:700;letter-spacing:-.02em;line-height:1.05}
+
+/* grain overlay (fixed, no repaint on scroll) */
+.grain{position:fixed;inset:0;z-index:60;pointer-events:none;opacity:.022;mix-blend-mode:multiply;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");}
+
+/* ============================ NAV ============================ */
+header.topbar{
+  position:sticky;top:0;z-index:40;
+  backdrop-filter:blur(16px) saturate(1.3);
+  background:linear-gradient(180deg,rgba(255,255,255,.9),rgba(255,255,255,.62));
+  border-bottom:1px solid var(--line);
+}
+.bar-inner{max-width:1180px;margin:0 auto;padding:12px 20px;display:flex;align-items:center;gap:18px;flex-wrap:wrap}
+.brand{display:flex;align-items:center;gap:11px;margin-right:auto}
+.crest{width:34px;height:34px;flex:0 0 auto;filter:drop-shadow(0 0 10px var(--acc-glow))}
+.word{display:flex;flex-direction:column;line-height:1}
+.word b{font-size:18px;font-weight:800;letter-spacing:.16em}
+.word span{font-size:9.5px;letter-spacing:.34em;color:var(--faint);text-transform:uppercase;margin-top:3px}
+.nav{display:flex;gap:4px;background:#e8edf3;border:1px solid var(--line);padding:4px;border-radius:14px}
+.nav button{
+  appearance:none;border:0;background:transparent;color:var(--muted);
+  padding:9px 16px;border-radius:10px;font-size:13px;font-weight:600;cursor:pointer;
+  letter-spacing:.02em;transition:color .18s var(--ease-out),background .18s var(--ease-out),transform .12s var(--ease-out);
+}
+.nav button:active{transform:scale(.96)}
+.nav button.on{background:var(--acc);color:var(--acc-ink);box-shadow:0 4px 12px -4px var(--acc-glow)}
+@media(hover:hover){.nav button:not(.on):hover{color:var(--txt);background:rgba(30,46,62,.04)}}
+
+main{max-width:1180px;margin:0 auto;padding:26px 20px 120px}
+.view{display:none;animation:viewIn .45s var(--ease-out) both}
+.view.on{display:block}
+@keyframes viewIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+
+/* ============================ SHARED BITS ============================ */
+.kicker{display:inline-flex;align-items:center;gap:8px;font-size:10.5px;letter-spacing:.28em;
+  text-transform:uppercase;color:var(--acc);font-weight:700;margin-bottom:12px}
+.kicker::before{content:"";width:22px;height:1.5px;background:linear-gradient(90deg,var(--acc),transparent)}
+.lede{color:var(--muted);max-width:62ch;font-size:14.5px}
+.section-head{margin-bottom:22px}
+.section-head h2{font-size:clamp(26px,4.5vw,40px);font-weight:800}
+
+.card{
+  background:linear-gradient(180deg,var(--panel-2),var(--panel));
+  border:1px solid var(--line);border-radius:var(--radius);
+  box-shadow:0 1px 2px rgba(30,46,62,.04), 0 14px 32px -22px rgba(30,46,62,.28);
+}
+.btn{
+  appearance:none;cursor:pointer;border-radius:12px;font-weight:700;font-size:14px;letter-spacing:.01em;
+  padding:12px 18px;border:1px solid transparent;display:inline-flex;align-items:center;gap:9px;justify-content:center;
+  transition:transform .12s var(--ease-out),box-shadow .2s var(--ease-out),background .2s var(--ease-out),border-color .2s var(--ease-out),color .2s var(--ease-out);
+}
+.btn:active{transform:scale(.975) translateY(1px)}
+.btn-primary{background:var(--acc);color:var(--acc-ink);box-shadow:0 8px 26px -10px var(--acc-glow)}
+@media(hover:hover){.btn-primary:hover{box-shadow:0 10px 30px -8px var(--acc-glow),0 0 0 4px rgba(47,111,176,.12)}}
+.btn-ghost{background:rgba(30,46,62,.03);border-color:var(--line-2);color:var(--txt)}
+@media(hover:hover){.btn-ghost:hover{background:rgba(30,46,62,.07);border-color:var(--acc)}}
+.btn-danger{background:#fbeef0;border-color:#eccdd2;color:#b23a4c}
+@media(hover:hover){.btn-danger:hover{background:#f6e0e3;border-color:var(--rose)}}
+.btn:disabled{opacity:.4;cursor:not-allowed}
+.btn-sm{padding:8px 13px;font-size:12.5px;border-radius:10px}
+
+.pill{font-size:10px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;padding:4px 9px;border-radius:999px;
+  border:1px solid var(--line-2);color:var(--muted)}
+
+/* stagger helper */
+.stagger>*{opacity:0;transform:translateY(10px);animation:rise .5s var(--ease-out) forwards;animation-delay:calc(var(--i,0)*55ms)}
+@keyframes rise{to{opacity:1;transform:none}}
+
+/* ============================ KNOWLEDGE: subtabs ============================ */
+.subtabs{display:flex;gap:6px;flex-wrap:wrap;margin:6px 0 28px}
+.subtabs button{appearance:none;cursor:pointer;background:transparent;border:1px solid var(--line);color:var(--muted);
+  padding:9px 15px;border-radius:11px;font-weight:600;font-size:13px;
+  transition:all .18s var(--ease-out)}
+.subtabs button:active{transform:scale(.96)}
+.subtabs button.on{color:var(--txt);border-color:var(--acc);background:rgba(47,111,176,.08)}
+@media(hover:hover){.subtabs button:not(.on):hover{color:var(--txt);border-color:var(--line-2)}}
+.kpane{display:none}
+.kpane.on{display:block;animation:viewIn .4s var(--ease-out) both}
+
+/* ============================ FORMATIONS ============================ */
+.form-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(330px,1fr));gap:18px}
+.fcard{padding:18px;display:flex;flex-direction:column;gap:14px}
+.fcard-top{display:flex;gap:16px;align-items:flex-start}
+.pitch-wrap{flex:0 0 118px}
+.pitch{width:118px;height:160px;border-radius:12px;display:block}
+.fmeta{flex:1;min-width:0}
+.fmeta .name{font-size:24px;font-weight:800;letter-spacing:-.02em}
+.fmeta .tag{color:var(--muted);font-size:12.5px;margin-top:4px}
+.tier-chip{margin-top:9px;display:inline-flex;align-items:center;gap:6px;font-size:10px;font-weight:800;
+  letter-spacing:.1em;text-transform:uppercase;padding:5px 9px;border-radius:8px}
+.tier-meta{background:#e4eef7;color:#1f4f80;border:1px solid #bcd5ea}
+.tier-solid{background:#eef1f4;color:var(--muted);border:1px solid var(--line-2)}
+
+.pc-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px 14px}
+.pc h5{font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:var(--faint);margin-bottom:7px;display:flex;align-items:center;gap:6px}
+.pc ul{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:5px}
+.pc li{font-size:12.4px;color:var(--muted);display:flex;gap:7px;line-height:1.35}
+.pc li::before{content:"";width:5px;height:5px;border-radius:2px;margin-top:6px;flex:0 0 auto}
+.pros li::before{background:var(--acc)}
+.cons li::before{background:var(--rose)}
+
+.tac{border-top:1px solid var(--line);padding-top:13px}
+.tac h5,.roles h5{font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:var(--faint);margin-bottom:11px}
+.slider{margin-bottom:12px}
+.slider .lab{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:6px}
+.slider .lab b{font-size:12.5px;font-weight:600}
+.slider .lab .val{font-size:11px;color:var(--acc);font-weight:700}
+.track{height:7px;border-radius:99px;background:rgba(30,46,62,.06);position:relative;overflow:hidden}
+.track i{position:absolute;inset:0 auto 0 0;border-radius:99px;
+  background:linear-gradient(90deg,var(--acc-d),var(--acc))}
+.track .knob{position:absolute;top:50%;width:13px;height:13px;border-radius:50%;background:#fff;
+  transform:translate(-50%,-50%);box-shadow:0 1px 3px rgba(30,46,62,.28);border:1px solid var(--line-2)}
+
+.roles{border-top:1px solid var(--line);padding-top:13px}
+.roles ul{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:9px}
+.roles li{display:flex;gap:11px;align-items:flex-start}
+.rpos{flex:0 0 46px;font-size:10.5px;font-weight:800;letter-spacing:.05em;color:var(--acc);
+  background:rgba(47,111,176,.09);border:1px solid rgba(47,111,176,.2);border-radius:7px;
+  padding:4px 0;text-align:center;font-family:'JetBrains Mono',monospace}
+.rtxt{font-size:12.4px;color:var(--muted);line-height:1.35}
+.rtxt b{color:var(--txt);font-weight:600}
+
+/* ============================ SKILL MOVES ============================ */
+.skills-controls{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:20px;align-items:center}
+.search{flex:1;min-width:200px;position:relative}
+.search input{width:100%;background:var(--panel);border:1px solid var(--line-2);border-radius:12px;
+  color:var(--txt);padding:12px 14px 12px 40px;font-size:14px;transition:border-color .18s var(--ease-out),box-shadow .18s var(--ease-out)}
+.search input::placeholder{color:var(--faint)}
+.search input:focus{outline:none;border-color:var(--acc);box-shadow:0 0 0 4px rgba(47,111,176,.12)}
+.search svg{position:absolute;left:13px;top:50%;transform:translateY(-50%);color:var(--faint)}
+.starfilter{display:flex;gap:5px;flex-wrap:wrap}
+.starfilter button{appearance:none;cursor:pointer;background:var(--panel);border:1px solid var(--line);
+  color:var(--muted);padding:9px 13px;border-radius:10px;font-size:12.5px;font-weight:600;
+  transition:all .16s var(--ease-out)}
+.starfilter button:active{transform:scale(.95)}
+.starfilter button.on{border-color:var(--acc);color:var(--acc);background:var(--acc-soft)}
+.padtoggle{display:inline-flex;gap:3px;background:#e8edf3;border:1px solid var(--line);padding:3px;border-radius:11px;margin-left:auto}
+.padtoggle button{appearance:none;cursor:pointer;background:transparent;border:0;color:var(--muted);
+  padding:8px 13px;border-radius:8px;font-size:12.5px;font-weight:600;transition:all .16s var(--ease-out)}
+.padtoggle button:active{transform:scale(.95)}
+.padtoggle button.on{background:#fff;color:var(--acc);box-shadow:0 1px 3px rgba(30,46,62,.12)}
+
+.skill-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:14px}
+.scard{padding:16px;display:flex;flex-direction:column;gap:11px}
+.scard-head{display:flex;justify-content:space-between;align-items:flex-start;gap:10px}
+.scard-head .nm{font-size:16px;font-weight:700}
+.stars{display:flex;gap:2px;flex:0 0 auto;margin-top:3px}
+.stars svg{width:13px;height:13px}
+.star-on{color:var(--acc)} .star-off{color:rgba(30,46,62,.15)}
+.inputs{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.key{display:inline-flex;align-items:center;justify-content:center;min-width:28px;height:28px;padding:0 8px;
+  border-radius:8px;background:#f7f9fc;border:1px solid var(--line-2);
+  box-shadow:0 2px 0 rgba(30,46,62,.10),0 1px 0 #fff inset;
+  font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:600;color:var(--txt)}
+.key.dir{color:var(--acc);font-size:15px}
+.key.btnk{color:var(--blue)}
+.arrow-sep{color:var(--faint);font-size:12px}
+.when{font-size:12.6px;color:var(--muted);line-height:1.4;border-top:1px solid var(--line);padding-top:10px}
+.when b{color:var(--txt);font-weight:600}
+.meta-row{display:flex;align-items:center;gap:8px;font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--faint)}
+.meter{flex:1;height:5px;border-radius:99px;background:rgba(30,46,62,.06);overflow:hidden}
+.meter i{display:block;height:100%;background:linear-gradient(90deg,var(--acc-d),var(--acc));border-radius:99px}
+
+/* ============================ TEAMS TABLE ============================ */
+.teams-note{font-size:12px;color:var(--faint);margin:-6px 0 18px}
+.ttable table{min-width:480px}
+.tstars{display:inline-flex;align-items:center;gap:2px;justify-content:flex-end}
+.tstars svg{width:15px;height:15px}
+.tstars .tnum{margin-left:8px;font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--muted);font-weight:600}
+.ttable{overflow-x:auto;border:1px solid var(--line);border-radius:var(--radius);background:var(--panel)}
+table{width:100%;border-collapse:collapse;min-width:640px}
+thead th{font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--faint);font-weight:700;
+  text-align:right;padding:14px 12px;border-bottom:1px solid var(--line);white-space:nowrap}
+thead th:first-child,tbody td:first-child{text-align:left;position:sticky;left:0;background:var(--panel)}
+tbody td{padding:13px 12px;text-align:right;border-bottom:1px solid var(--line);font-size:13.5px;white-space:nowrap}
+tbody tr:last-child td{border-bottom:0}
+@media(hover:hover){tbody tr:hover td{background:rgba(30,46,62,.025)}}
+.club{display:flex;flex-direction:column;gap:2px}
+.club b{font-size:14.5px;font-weight:700}
+.club span{font-size:11px;color:var(--faint)}
+.tier-badge{display:inline-flex;align-items:center;justify-content:center;width:26px;height:26px;border-radius:8px;
+  font-weight:800;font-size:12px;font-family:'JetBrains Mono',monospace}
+.t-S{background:#dde9f5;color:#1d4a7a;border:1px solid #b2cde6}
+.t-A{background:var(--acc-soft);color:var(--acc);border:1px solid #cfe0f0}
+.t-B{background:#eef1f4;color:var(--muted);border:1px solid var(--line-2)}
+.ovr{font-weight:700;color:var(--txt)}
+
+/* ============================ MODAL ============================ */
+.modal-scrim{position:fixed;inset:0;z-index:80;display:flex;align-items:center;justify-content:center;padding:20px;
+  background:rgba(18,34,48,.34);backdrop-filter:blur(3px);animation:scrimIn .16s var(--ease-out)}
+.modal-scrim[hidden]{display:none}
+.modal{max-width:380px;width:100%;padding:22px;animation:modalIn .22s var(--ease-out)}
+.modal h3{font-size:18px;margin-bottom:8px}
+.modal p{font-size:13.5px;color:var(--muted);line-height:1.5;margin:0 0 18px}
+.modal-actions{display:flex;gap:9px;justify-content:flex-end}
+@keyframes scrimIn{from{opacity:0}to{opacity:1}}
+@keyframes modalIn{from{opacity:0;transform:scale(.96) translateY(6px)}to{opacity:1;transform:none}}
+
+/* ============================ TOURNAMENT ============================ */
+.tlayout{display:grid;grid-template-columns:1fr;gap:18px}
+.step-tag{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--acc);letter-spacing:.1em;font-weight:700}
+.panel{padding:20px}
+.panel-head{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:16px;flex-wrap:wrap}
+.panel-head h3{font-size:17px;font-weight:700;display:flex;align-items:center;gap:10px}
+.panel-head .actions{display:flex;gap:8px;flex-wrap:wrap}
+
+.regulars{margin-bottom:18px}
+.reg-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+.reg-head span{font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:var(--faint);font-weight:700}
+.reg-chips{display:flex;flex-wrap:wrap;gap:7px}
+.chip{appearance:none;cursor:pointer;display:inline-flex;align-items:center;gap:6px;
+  padding:8px 13px 8px 10px;border-radius:999px;font-size:13px;font-weight:600;
+  background:#f3f6fa;border:1px solid var(--line-2);color:var(--txt);
+  transition:transform .12s var(--ease-out),background .16s var(--ease-out),border-color .16s var(--ease-out),color .16s var(--ease-out)}
+.chip:active{transform:scale(.95)}
+.chip svg{flex:0 0 auto;transition:transform .16s var(--ease-out)}
+@media(hover:hover){.chip:hover{border-color:var(--acc);background:#fff}}
+.chip.added{background:var(--acc-soft);border-color:#bcd5ea;color:#1f4f80}
+.chip.added .ic{color:var(--acc)}
+@media(hover:hover){.chip.added:hover{background:#fbeef0;border-color:#eccdd2;color:#b23a4c}
+  .chip.added:hover .ic{color:#b23a4c}
+  .chip.added:hover .ic-check{display:none}.chip.added:hover .ic-x{display:inline}}
+.chip .ic-x{display:none}
+.roster-input{display:flex;gap:9px;margin-bottom:16px}.roster-input input{flex:1;background:#f3f6fa;border:1px solid var(--line-2);border-radius:12px;color:var(--txt);
+  padding:12px 15px;font-size:15px;transition:border-color .18s var(--ease-out),box-shadow .18s var(--ease-out)}
+.roster-input input:focus{outline:none;border-color:var(--acc);box-shadow:0 0 0 4px rgba(47,111,176,.12)}
+.roster-input input::placeholder{color:var(--faint)}
+
+.rlist{display:flex;flex-direction:column;gap:7px}
+.rrow{display:flex;align-items:center;gap:12px;padding:11px 13px;border-radius:12px;
+  background:rgba(30,46,62,.025);border:1px solid var(--line);
+  transition:opacity .25s var(--ease-out),background .18s var(--ease-out)}
+.rrow.off{opacity:.42}
+.rrow .num{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--faint);width:22px}
+.rrow .pname{flex:1;font-weight:600;font-size:14.5px}
+.rrow.off .pname{text-decoration:line-through;text-decoration-color:var(--faint)}
+.rrow .rtag{font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--acc);font-weight:700}
+.rrow.off .rtag{color:var(--faint)}
+.iconbtn{appearance:none;cursor:pointer;width:32px;height:32px;border-radius:9px;border:1px solid var(--line-2);
+  background:rgba(30,46,62,.03);color:var(--muted);display:inline-flex;align-items:center;justify-content:center;
+  transition:all .15s var(--ease-out)}
+.iconbtn:active{transform:scale(.9)}
+@media(hover:hover){.iconbtn:hover{color:var(--txt);border-color:var(--acc)}}
+.iconbtn.del:hover{color:#b23a4c;border-color:#e3b6bc}
+
+.empty{text-align:center;padding:38px 20px;color:var(--faint)}
+.empty svg{margin-bottom:12px;opacity:.5}
+.empty b{display:block;color:var(--muted);font-weight:600;font-size:15px;margin-bottom:5px}
+.empty p{margin:0;font-size:13px;max-width:42ch;margin-inline:auto}
+
+.warn{display:flex;gap:10px;align-items:center;padding:11px 14px;border-radius:12px;margin-bottom:14px;
+  background:#faf4e6;border:1px solid #ecdcb0;color:#9a6f1f;font-size:13px;font-weight:500}
+.warn svg{flex:0 0 auto}
+
+.teamgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:13px}
+.tcard{padding:15px;border-radius:14px;background:linear-gradient(180deg,var(--panel-2),var(--panel));
+  border:1px solid var(--line);position:relative;overflow:hidden}
+.tcard::before{content:"";position:absolute;inset:0 0 auto 0;height:3px;
+  background:linear-gradient(90deg,var(--acc),transparent)}
+.tcard .tname{font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--faint);
+  font-weight:700;margin-bottom:11px;font-family:'JetBrains Mono',monospace}
+.duo{display:flex;flex-direction:column;gap:8px}
+.pslot{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:10px;cursor:pointer;
+  background:rgba(30,46,62,.03);border:1px solid var(--line);
+  transition:transform .14s var(--ease-out),border-color .16s var(--ease-out),background .16s var(--ease-out)}
+.pslot:active{transform:scale(.97)}
+@media(hover:hover){.pslot:hover{border-color:var(--line-2);background:rgba(30,46,62,.06)}}
+.pslot.sel{border-color:var(--acc);background:rgba(47,111,176,.12);box-shadow:0 0 0 3px rgba(47,111,176,.12)}
+.pslot .av{width:26px;height:26px;border-radius:50%;flex:0 0 auto;display:flex;align-items:center;justify-content:center;
+  font-size:11px;font-weight:800;color:var(--acc-ink);font-family:'JetBrains Mono',monospace}
+.pslot b{font-size:14px;font-weight:600}
+.swap-hint{font-size:11.5px;color:var(--faint);margin-top:13px;display:flex;align-items:center;gap:7px}
+
+.benchbar{margin-top:14px;padding:12px 14px;border-radius:12px;background:var(--acc-soft);
+  border:1px solid #cfe0f0;font-size:13px;color:#2a608f;display:flex;align-items:center;gap:9px;flex-wrap:wrap}
+.benchbar b{color:#1d4a7a;font-weight:700}
+
+/* fixtures */
+.round{margin-bottom:18px}
+.round-label{font-family:'JetBrains Mono',monospace;font-size:10.5px;letter-spacing:.18em;text-transform:uppercase;
+  color:var(--faint);margin-bottom:9px;display:flex;align-items:center;gap:9px}
+.round-label::after{content:"";flex:1;height:1px;background:var(--line)}
+.fixture{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:10px;
+  padding:12px 14px;border-radius:12px;background:rgba(30,46,62,.025);border:1px solid var(--line);margin-bottom:8px;
+  transition:border-color .18s var(--ease-out)}
+.fixture.done{border-color:rgba(47,111,176,.25)}
+.fteam{display:flex;flex-direction:column;gap:2px;min-width:0}
+.fteam.away{text-align:right;align-items:flex-end}
+.fteam .tg{font-family:'JetBrains Mono',monospace;font-size:9.5px;color:var(--acc);letter-spacing:.1em;font-weight:700}
+.fteam .pp{font-size:13px;font-weight:600;line-height:1.2;overflow:hidden;text-overflow:ellipsis}
+.score{display:flex;align-items:center;gap:6px}
+.score input{width:42px;height:40px;text-align:center;background:#f3f6fa;border:1px solid var(--line-2);
+  border-radius:9px;color:var(--txt);font-family:'JetBrains Mono',monospace;font-size:17px;font-weight:700;
+  transition:border-color .16s var(--ease-out),box-shadow .16s var(--ease-out);-moz-appearance:textfield}
+.score input::-webkit-outer-spin-button,.score input::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
+.score input:focus{outline:none;border-color:var(--acc);box-shadow:0 0 0 3px rgba(47,111,176,.14)}
+.score .dash{color:var(--faint);font-weight:700}
+
+/* standings */
+.stable{overflow-x:auto;border:1px solid var(--line);border-radius:14px}
+.stable table{min-width:560px}
+.stable thead th{text-align:right}
+.stable thead th:nth-child(2){text-align:left}
+.stable td{text-align:right}
+.stable td:nth-child(2){text-align:left}
+.pos{font-family:'JetBrains Mono',monospace;color:var(--faint);font-weight:700;width:30px}
+.pos.p1{color:var(--acc)} .pos.p2{color:#7d8c9b} .pos.p3{color:#9aa7b4}
+.stable .pts{font-weight:800;color:var(--acc);font-family:'JetBrains Mono',monospace}
+.stable .gd.pos-gd{color:var(--acc)} .stable .gd.neg-gd{color:var(--rose)}
+.tcell b{font-weight:700;font-size:13.5px}
+.tcell span{display:block;font-size:11px;color:var(--faint)}
+
+.footer{max-width:1180px;margin:0 auto;padding:0 20px 50px;color:var(--faint);font-size:12px;text-align:center;line-height:1.7}
+.footer a{color:var(--muted)}
+
+@media (max-width:520px){
+  .bar-inner{padding:11px 15px;gap:12px}
+  main{padding:20px 15px 110px}
+  .nav{width:100%;justify-content:center}
+  .nav button{flex:1;padding:9px 10px}
+  .fcard-top{flex-direction:row}
+}
+
+@media (prefers-reduced-motion:reduce){
+  *{animation-duration:.001ms!important;animation-delay:0ms!important;transition-duration:.06s!important}
+  .view,.kpane{animation:none}
+}
+</style>
+</head>
+<body>
+<div class="grain"></div>
+
+<header class="topbar">
+  <div class="bar-inner">
+    <div class="brand">
+      <svg class="crest" viewBox="0 0 48 48" fill="none" aria-hidden="true">
+        <path d="M24 3l17 6v11c0 11-7.2 20.1-17 24-9.8-3.9-17-13-17-24V9l17-6z" fill="url(#g1)" stroke="var(--acc)" stroke-width="1.4"/>
+        <path d="M24 13l3.4 7 7.6.6-5.8 5 1.8 7.4L24 35.8 17 38l1.8-7.4-5.8-5 7.6-.6L24 13z" fill="#ffffff" stroke="var(--acc)" stroke-width="1.2"/>
+        <defs><linearGradient id="g1" x1="7" y1="3" x2="41" y2="44"><stop stop-color="rgba(47,111,176,.22)"/><stop offset="1" stop-color="rgba(47,111,176,.04)"/></linearGradient></defs>
+      </svg>
+      <div class="word"><b>TOUCHLINE</b><span>FC 26 · Friday Night Ops</span></div>
+    </div>
+    <nav class="nav" id="mainNav">
+      <button data-view="knowledge" class="on">Knowledge Hub</button>
+      <button data-view="tournament">Tournament</button>
+    </nav>
+  </div>
+</header>
+
+<main>
+  <!-- ============================ KNOWLEDGE HUB ============================ -->
+  <section class="view on" id="view-knowledge">
+    <div class="section-head">
+      <span class="kicker">The Playbook</span>
+      <h2>Knowledge Hub</h2>
+      <p class="lede">Meta formations, the skill-move cheat sheet, and a couch-tier team ranking — everything you need to win the argument before kickoff. Meta shifts with patches, so treat tactic values as strong starting points, not gospel.</p>
+    </div>
+
+    <div class="subtabs" id="ksubtabs">
+      <button data-k="formations" class="on">Formations &amp; Tactics</button>
+      <button data-k="skills">Skill Moves</button>
+      <button data-k="teams">Team Ratings</button>
+    </div>
+
+    <div class="kpane on" id="kpane-formations"><div class="form-grid stagger" id="formGrid"></div></div>
+
+    <div class="kpane" id="kpane-skills">
+      <div class="skills-controls">
+        <div class="search">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
+          <input id="skillSearch" type="text" placeholder="Search skill moves…">
+        </div>
+        <div class="starfilter" id="starFilter">
+          <button data-s="all" class="on">All</button>
+          <button data-s="2">2★</button>
+          <button data-s="3">3★</button>
+          <button data-s="4">4★</button>
+          <button data-s="5">5★</button>
+        </div>
+        <div class="padtoggle" id="padToggle" role="group" aria-label="Controller layout">
+          <button data-pad="ps" class="on">PlayStation</button>
+          <button data-pad="xbox">Xbox</button>
+        </div>
+      </div>
+      <div class="skill-grid" id="skillGrid"></div>
+    </div>
+
+    <div class="kpane" id="kpane-teams">
+      <p class="teams-note"><b>EA Stars</b> are the official in-game team rating you see in Kick Off (verified). <b>Meta Tier</b> is our own couch 2v2 call — it rewards pace, physical presence and counter-attacking, so a 5★ side can still sit a tier lower for local play. Squad updates nudge these through the year.</p>
+      <div class="ttable">
+        <table>
+          <thead><tr>
+            <th>Club</th><th>EA Stars</th><th>Meta Tier</th>
+          </tr></thead>
+          <tbody id="teamBody"></tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================ TOURNAMENT ============================ -->
+  <section class="view" id="view-tournament">
+    <div class="section-head">
+      <span class="kicker">Game Night</span>
+      <h2>Friday Night 2v2</h2>
+      <p class="lede">Add the squad, shuffle them into duos, and run a round-robin. Scores update the live table instantly — and everything is saved to this device, so a stray refresh won't wipe the night.</p>
+    </div>
+
+    <div class="tlayout">
+      <!-- STEP 1: ROSTER -->
+      <div class="card panel">
+        <div class="panel-head">
+          <h3><span class="step-tag">01</span> Master Roster</h3>
+          <div class="actions">
+            <button class="btn btn-ghost btn-sm" id="loadRoster">Reload Saved</button>
+            <button class="btn btn-danger btn-sm" id="clearRoster">Clear All</button>
+          </div>
+        </div>
+        <div class="roster-input">
+          <input id="playerName" type="text" placeholder="Add a guest name…" maxlength="22" autocomplete="off">
+          <button class="btn btn-primary" id="addPlayer">Add</button>
+        </div>
+        <div class="regulars">
+          <div class="reg-head"><span>Regulars</span><button class="btn btn-ghost btn-sm" id="addAllReg">Add all</button></div>
+          <div class="reg-chips" id="regChips"></div>
+        </div>
+        <div id="rosterArea"></div>
+      </div>
+
+      <!-- STEP 2: TEAMS -->
+      <div class="card panel">
+        <div class="panel-head">
+          <h3><span class="step-tag">02</span> The Draw</h3>
+          <div class="actions">
+            <button class="btn btn-primary btn-sm" id="genTeams">Generate Teams</button>
+          </div>
+        </div>
+        <div id="teamsArea"></div>
+      </div>
+
+      <!-- STEP 3: FIXTURES + STANDINGS -->
+      <div class="card panel">
+        <div class="panel-head">
+          <h3><span class="step-tag">03</span> Fixtures &amp; Table</h3>
+          <div class="actions">
+            <button class="btn btn-ghost btn-sm" id="genFixtures">Generate Fixtures</button>
+          </div>
+        </div>
+        <div id="fixturesArea"></div>
+        <div id="standingsArea" style="margin-top:20px"></div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<div class="modal-scrim" id="modalScrim" hidden>
+  <div class="modal card" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+    <h3 id="modalTitle">Are you sure?</h3>
+    <p id="modalBody"></p>
+    <div class="modal-actions">
+      <button class="btn btn-ghost btn-sm" id="modalCancel">Cancel</button>
+      <button class="btn btn-danger btn-sm" id="modalOk">Confirm</button>
+    </div>
+  </div>
+</div>
+
+<div class="footer">
+  TOUCHLINE · an unofficial fan companion for EA Sports FC 26. Not affiliated with EA. ·
+  Saved locally on this device.
+</div>
+
+<script>
+/* ====================================================================
+   DATA
+==================================================================== */
+const FORMATIONS = [
+  {
+    name:"4-2-3-1", tag:"The meta king. Balance you can win with against anyone.",
+    tier:"meta", tierLabel:"Meta King",
+    spots:[[50,92,"GK"],[16,72,"LB"],[38,74,"CB"],[62,74,"CB"],[84,72,"RB"],[38,56,"DM"],[62,56,"DM"],[20,32,"LM"],[50,30,"CAM"],[80,32,"RM"],[50,12,"ST"]],
+    pros:["Double pivot screens the back four","CAM as Shadow Striker shreds tight blocks","Easy passing triangles everywhere","Reliable in literally any matchup"],
+    cons:["Lone striker can get isolated","Needs a high-stamina CAM","Wide players must track back"],
+    tac:{buildUp:["Balanced",50],depth:["High line",65],width:["Balanced",52]},
+    roles:[
+      {pos:"CDM",txt:"<b>Holding / Deep-Lying Playmaker (Defend)</b> — Stay Back While Attacking"},
+      {pos:"CAM",txt:"<b>Shadow Striker (Attack)</b> — the dagger; sits on the last line"},
+      {pos:"LM/RM",txt:"<b>Inside Forward</b> — cut inside, overload the half-spaces"},
+      {pos:"ST",txt:"<b>Advanced Forward</b> — Get In Behind to stretch the line"},
+    ]
+  },
+  {
+    name:"4-4-1-1", tag:"Post-patch monster. Triangles all over the pitch.",
+    tier:"meta", tierLabel:"Top Meta",
+    spots:[[50,92,"GK"],[16,72,"LB"],[38,74,"CB"],[62,74,"CB"],[84,72,"RB"],[16,46,"LM"],[40,50,"CM"],[60,50,"CM"],[84,46,"RM"],[50,30,"CF"],[50,12,"ST"]],
+    pros:["CF + ST always sit forward for instant counters","Box-to-Box CMs flood the attack on possession","Best formation for player-role chemistry","Wrapid wingers = deadly"],
+    cons:["Can feel thin centrally without the ball","CMs need real engines","Punished if your shifting is lazy"],
+    tac:{buildUp:["Balanced",50],depth:["High line",66],width:["Balanced",55]},
+    roles:[
+      {pos:"CM",txt:"<b>Box-to-Box (Balanced)</b> — the pillars; arrive late in the box"},
+      {pos:"LM/RM",txt:"<b>Inside Forward</b> — pinch in, form triangles around the box"},
+      {pos:"CF",txt:"<b>Shadow Striker / False 9</b> — link play, sit between the lines"},
+      {pos:"ST",txt:"<b>Advanced Forward</b> — Get In Behind, stay highest"},
+    ]
+  },
+  {
+    name:"4-3-3 (2)", tag:"Holding variant — an extra body next to the CBs.",
+    tier:"solid", tierLabel:"A-Tier",
+    spots:[[50,92,"GK"],[16,72,"LB"],[38,74,"CB"],[62,74,"CB"],[84,72,"RB"],[50,58,"DM"],[34,44,"CM"],[66,44,"CM"],[18,22,"LW"],[50,14,"ST"],[82,22,"RW"]],
+    pros:["Single CDM drops to make a back three on defence","More attacking presence than 4-4-1-1","Wingers stay wide to stretch the pitch","Great for direct, pacey football"],
+    cons:["Lone DM can get overrun by double pivots","Full-backs exposed if wingers don't track","Demands all-round CMs"],
+    tac:{buildUp:["Balanced",50],depth:["High line",62],width:["Wide",62]},
+    roles:[
+      {pos:"CDM",txt:"<b>Deep-Lying Playmaker (Defend)</b> — drops between the CBs"},
+      {pos:"CM",txt:"<b>Box-to-Box</b> — one drives, one supports defensively"},
+      {pos:"LW/RW",txt:"<b>Inside Forward / Winger</b> — hug the line, then cut in"},
+      {pos:"ST",txt:"<b>Advanced Forward</b> — Get In Behind"},
+    ]
+  },
+  {
+    name:"4-4-2", tag:"Old reliable. Fast, direct, and brutally simple.",
+    tier:"solid", tierLabel:"A-Tier",
+    spots:[[50,92,"GK"],[16,72,"LB"],[38,74,"CB"],[62,74,"CB"],[84,72,"RB"],[16,48,"LM"],[40,50,"CM"],[60,50,"CM"],[84,48,"RM"],[40,16,"ST"],[60,16,"ST"]],
+    pros:["Two strikers = constant central threat","Dead easy to control for newer players","Wingers + overlaps abuse the flanks","Strong shape for quick give-and-go's"],
+    cons:["Can get outnumbered in midfield","Vulnerable to a packed central overload","Needs disciplined CMs to not get split"],
+    tac:{buildUp:["Balanced",48],depth:["Medium-high",58],width:["Wide",64]},
+    roles:[
+      {pos:"CM",txt:"<b>Box-to-Box + Holding</b> — pair an engine with an anchor"},
+      {pos:"LM/RM",txt:"<b>Winger</b> — stay wide, deliver early balls"},
+      {pos:"ST",txt:"<b>Advanced Forward</b> + <b>Target Man</b> — one runs, one holds"},
+      {pos:"FB",txt:"<b>Full-Back (Balanced)</b> — Overlap on the strong side"},
+    ]
+  },
+  {
+    name:"3-5-2", tag:"Midfield overload with wing-backs flying forward.",
+    tier:"solid", tierLabel:"B-Tier",
+    spots:[[50,92,"GK"],[30,76,"CB"],[50,78,"CB"],[70,76,"CB"],[12,52,"LWB"],[36,52,"CM"],[50,50,"CM"],[64,52,"CM"],[88,52,"RWB"],[40,18,"ST"],[60,18,"ST"]],
+    pros:["Owns the midfield with a five-man middle","Wing-backs provide all the width","Back three is solid centrally","Two strikers stay dangerous"],
+    cons:["Flanks are exposed if wing-backs push up","Demands huge stamina from WBs","Tricky shape to defend with"],
+    tac:{buildUp:["Balanced",52],depth:["Medium",52],width:["Balanced",50]},
+    roles:[
+      {pos:"WB",txt:"<b>Wing-Back (Attack)</b> — your only width; must bomb on"},
+      {pos:"CB",txt:"<b>Central / Wide CB (Defend)</b> — middle one stays deepest"},
+      {pos:"CM",txt:"<b>Box-to-Box + Deep-Lying Playmaker</b> — control tempo"},
+      {pos:"ST",txt:"<b>Advanced Forward + Target Man</b> — split the roles"},
+    ]
+  },
+  {
+    name:"4-2-1-3", fullname:"4-2-1-3", tag:"4-4-1-1's wider cousin — extra defensive cover up top.",
+    tier:"meta", tierLabel:"Rising Meta",
+    spots:[[50,92,"GK"],[16,72,"LB"],[38,74,"CB"],[62,74,"CB"],[84,72,"RB"],[38,56,"DM"],[62,56,"DM"],[50,38,"CAM"],[18,18,"LW"],[50,14,"ST"],[82,18,"RW"]],
+    pros:["Two CDMs lock the centre down","Wingers pushed high pin the full-backs","CAM links midfield to a front three","More attacking width than 4-2-3-1"],
+    cons:["Big gaps if wingers don't recover","Full-backs left 1v1 a lot","Front line can drift offside"],
+    tac:{buildUp:["Balanced",50],depth:["High line",64],width:["Wide",60]},
+    roles:[
+      {pos:"CDM",txt:"<b>Holding (Defend)</b> — Cover Center, kill central passes"},
+      {pos:"CAM",txt:"<b>Shadow Striker / Playmaker</b> — the connector"},
+      {pos:"LW/RW",txt:"<b>Inside Forward</b> — high and wide, then attack the box"},
+      {pos:"ST",txt:"<b>Advanced Forward</b> — Get In Behind"},
+    ]
+  },
+];
+
+const SKILLS = [
+  { name:"Ball Roll", stars:1, meta:4, input:[["k","RS"],["sep"],["d","→"],["t","hold"]],
+    when:"Your bread-and-butter dribble. Hold to shift defenders' weight, then burst the opposite way. The most-used move in the game." },
+  { name:"Drag Back", stars:2, meta:4, input:[["k","RS"],["sep"],["d","↓"],["t","hold"]],
+    when:"Pull the ball back toward your own goal to escape a charging defender, then break into the space they left." },
+  { name:"Body Feint", stars:2, meta:3, input:[["k","RS"],["sep"],["d","←"],["s"],["d","→"]],
+    when:"A quick shoulder drop. Use at speed on the wing to wrong-foot a back-pedalling full-back before crossing." },
+  { name:"Heel to Heel Flick", stars:2, meta:3, input:[["k","RS"],["sep"],["d","↑"],["s"],["d","↓"]],
+    when:"Flick the ball back behind your standing leg to spin out of pressure when a defender commits from the front." },
+  { name:"La Croqueta", stars:4, meta:5, input:[["b","L1"],["plus"],["k","LS"],["sep"],["d","←"],["t","/"],["d","→"]],
+    when:"The elite close-control move. Slide the ball across your body inside the box to open a shooting lane in a flash." },
+  { name:"Ball Roll Cut (Scoop Turn Fake)", stars:3, meta:4, input:[["k","RS"],["sep"],["d","→"],["t","then"],["d","↓"]],
+    when:"Roll, then chop inside. Brilliant for cutting onto your stronger foot at the edge of the area." },
+  { name:"Roulette", stars:4, meta:4, input:[["k","RS"],["sep"],["d","↻"],["t","½ turn"]],
+    when:"Spin 180° through a lunging defender. Best in midfield to glide past one committed challenge with momentum." },
+  { name:"Elastico (Flip Flap)", stars:5, meta:4, input:[["k","RS"],["sep"],["d","→"],["t","then"],["d","←"]],
+    when:"Push the ball out then snap it back inside. Devastating 1v1 on the wing when the defender bites on the first touch." },
+  { name:"Reverse Elastico", stars:5, meta:4, input:[["k","RS"],["sep"],["d","←"],["t","then"],["d","→"]],
+    when:"Mirror of the Elastico to beat a defender on your weaker side. Sell the outside, finish inside." },
+  { name:"McGeady Spin", stars:5, meta:5, input:[["k","RS"],["sep"],["d","↓"],["t","then rotate"],["d","↗"]],
+    when:"A 180° drag-and-spin in one motion. Lethal in the corners and half-spaces to lose your marker completely." },
+  { name:"Ball Roll Fake Turn", stars:5, meta:4, input:[["k","RS"],["sep"],["d","→"],["t","hold + flick"],["d","↑"]],
+    when:"Fake the roll, snap upfield. Great for shaking a tight man-marker who's hugging your dribble." },
+  { name:"Fake Shot", stars:0, meta:5, input:[["b","◯"],["plus"],["b","✕"],["t","+ aim"]],
+    when:"Technically not a skill star, but the single most effective dribble in the game. Cancel a shot to body-feint past a defender or open a finishing angle. Master this first." },
+  { name:"Stop & Turn", stars:2, meta:3, input:[["k","RS"],["sep"],["d","↑"],["t","then"],["d","↓"]],
+    when:"Stop dead and reverse direction. Slows the game down and resets when a counter breaks down." },
+  { name:"Heel Chop", stars:3, meta:3, input:[["b","L1"],["plus"],["b","R1"],["t","+ aim"]],
+    when:"A sharp inside chop to plant and cut. Use to create a yard of space for a finesse shot from the corner of the box." },
+];
+
+const TEAMS = [
+  { club:"Real Madrid", league:"LaLiga", stars:5, tier:"S", note:"Mbappé + Vinícius pace; brutal on the counter." },
+  { club:"Paris Saint-Germain", league:"Ligue 1", stars:5, tier:"S", note:"Dembélé + Hakimi; explosive on both wings." },
+  { club:"Manchester City", league:"Premier League", stars:5, tier:"S", note:"Midfield control, Haaland as a wrecking ball." },
+  { club:"Liverpool", league:"Premier League", stars:5, tier:"S", note:"Salah + Van Dijk; pace, power and balance." },
+  { club:"Barcelona", league:"LaLiga", stars:5, tier:"A", note:"Yamal flair and passing; can be soft at the back." },
+  { club:"Bayern München", league:"Bundesliga", stars:5, tier:"A", note:"Kane finishing; well-rounded, plays any style." },
+  { club:"Arsenal", league:"Premier League", stars:5, tier:"A", note:"No weak spot; Gyökeres + Saka give real punch." },
+  { club:"Inter", league:"Serie A", stars:4.5, tier:"A", note:"Physical and hard to break down." },
+  { club:"Atlético Madrid", league:"LaLiga", stars:4.5, tier:"B", note:"Oblak anchors it; structured, less flashy." },
+  { club:"Chelsea", league:"Premier League", stars:4.5, tier:"B", note:"Young and rapid; high ceiling, streaky." },
+  { club:"Napoli", league:"Serie A", stars:4.5, tier:"B", note:"De Bruyne passing, McTominay engine." },
+  { club:"Manchester United", league:"Premier League", stars:4.5, tier:"B", note:"Decent pace up top; balanced mid-tier pick." },
+];
+
+/* ====================================================================
+   RENDER: KNOWLEDGE HUB
+==================================================================== */
+function pitchSVG(spots){
+  const dots = spots.map(([x,y,l])=>{
+    const isGK = l==="GK";
+    const fill = isGK ? "#ffffff" : "var(--acc)";
+    const stroke = isGK ? "var(--muted)" : "var(--acc)";
+    return `<g><circle cx="${x}" cy="${y}" r="5.4" fill="${fill}" stroke="${stroke}" stroke-width="1.1"/>`+
+           `<text x="${x}" y="${y+2.4}" text-anchor="middle" font-size="4.4" font-weight="700" fill="${isGK?'var(--muted)':'#ffffff'}" font-family="JetBrains Mono,monospace">${l}</text></g>`;
+  }).join("");
+  return `<svg class="pitch" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
+    <defs><linearGradient id="turf" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="rgba(47,111,176,.06)"/><stop offset="1" stop-color="rgba(10,14,19,0)"/>
+    </linearGradient></defs>
+    <rect x="1.5" y="1.5" width="97" height="97" rx="3" fill="url(#turf)" stroke="rgba(30,46,62,.08)" stroke-width=".7"/>
+    <line x1="1.5" y1="50" x2="98.5" y2="50" stroke="rgba(30,46,62,.07)" stroke-width=".6"/>
+    <circle cx="50" cy="50" r="11" fill="none" stroke="rgba(30,46,62,.07)" stroke-width=".6"/>
+    <rect x="32" y="1.5" width="36" height="15" fill="none" stroke="rgba(30,46,62,.07)" stroke-width=".6"/>
+    <rect x="32" y="83.5" width="36" height="15" fill="none" stroke="rgba(30,46,62,.07)" stroke-width=".6"/>
+    ${dots}
+  </svg>`;
+}
+function sliderRow(label,[txt,val]){
+  return `<div class="slider">
+    <div class="lab"><b>${label}</b><span class="val">${txt} · ${val}</span></div>
+    <div class="track"><i style="width:${val}%"></i><span class="knob" style="left:${val}%"></span></div>
+  </div>`;
+}
+function renderFormations(){
+  document.getElementById('formGrid').innerHTML = FORMATIONS.map((f,i)=>`
+    <article class="card fcard" style="--i:${i}">
+      <div class="fcard-top">
+        <div class="pitch-wrap">${pitchSVG(f.spots)}</div>
+        <div class="fmeta">
+          <div class="name">${f.name}</div>
+          <div class="tag">${f.tag}</div>
+          <span class="tier-chip ${f.tier==='meta'?'tier-meta':'tier-solid'}">${f.tier==='meta'?'★ ':''}${f.tierLabel}</span>
+        </div>
+      </div>
+      <div class="pc-grid">
+        <div class="pc pros"><h5>Strengths</h5><ul>${f.pros.map(p=>`<li>${p}</li>`).join("")}</ul></div>
+        <div class="pc cons"><h5>Watch outs</h5><ul>${f.cons.map(c=>`<li>${c}</li>`).join("")}</ul></div>
+      </div>
+      <div class="tac">
+        <h5>Custom Tactics</h5>
+        ${sliderRow("Build-Up Play",f.tac.buildUp)}
+        ${sliderRow("Defensive Depth",f.tac.depth)}
+        ${sliderRow("Width",f.tac.width)}
+      </div>
+      <div class="roles">
+        <h5>Key Player Roles &amp; Instructions</h5>
+        <ul>${f.roles.map(r=>`<li><span class="rpos">${r.pos}</span><span class="rtxt">${r.txt}</span></li>`).join("")}</ul>
+      </div>
+    </article>`).join("");
+}
+
+function starRow(n){
+  let s="";
+  for(let i=1;i<=5;i++){
+    s+=`<svg viewBox="0 0 24 24" class="${i<=n?'star-on':'star-off'}" fill="currentColor"><path d="M12 2l2.9 6.3 6.9.6-5.2 4.6 1.6 6.8L12 17.3 5.8 20.9l1.6-6.8L2.2 8.9l6.9-.6L12 2z"/></svg>`;
+  }
+  return s;
+}
+let pad="ps";
+const PAD_MAP={ "L1":"LB", "R1":"RB", "L2":"LT", "R2":"RT", "◯":"B", "✕":"A", "△":"Y", "□":"X" };
+function remapBtn(v){ return pad==="xbox" ? (PAD_MAP[v]||v) : v; }
+function keycap(tok){
+  const [t,v]=tok;
+  if(t==="sep")  return `<span class="arrow-sep">›</span>`;
+  if(t==="plus") return `<span class="arrow-sep">+</span>`;
+  if(t==="s")    return `<span class="arrow-sep">·</span>`;
+  if(t==="d")    return `<span class="key dir">${v}</span>`;
+  if(t==="b")    return `<span class="key btnk">${remapBtn(v)}</span>`;
+  if(t==="t")    return `<span class="arrow-sep" style="font-style:italic">${v}</span>`;
+  return `<span class="key">${v}</span>`;
+}
+let skillFilter={q:"",star:"all"};
+function renderSkills(){
+  const q=skillFilter.q.toLowerCase();
+  const list=SKILLS.filter(s=>{
+    const okStar = skillFilter.star==="all" || String(s.stars)===skillFilter.star;
+    const okQ = !q || s.name.toLowerCase().includes(q) || s.when.toLowerCase().includes(q);
+    return okStar && okQ;
+  });
+  const grid=document.getElementById('skillGrid');
+  if(!list.length){
+    grid.innerHTML=`<div class="empty" style="grid-column:1/-1">
+      <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
+      <b>No skill moves match</b><p>Try a different search term or star rating.</p></div>`;
+    return;
+  }
+  grid.innerHTML=list.map((s,i)=>`
+    <article class="card scard" style="animation:rise .4s var(--ease-out) ${i*40}ms both">
+      <div class="scard-head">
+        <div class="nm">${s.name}</div>
+        <div class="stars" title="${s.stars||'Core'}-star">${s.stars?starRow(s.stars):'<span class="pill">CORE</span>'}</div>
+      </div>
+      <div class="inputs">${s.input.map(keycap).join("")}</div>
+      <div class="when"><b>When:</b> ${s.when}</div>
+      <div class="meta-row"><span>Meta</span><span class="meter"><i style="width:${s.meta*20}%"></i></span><span>${s.meta}/5</span></div>
+    </article>`).join("");
+}
+
+const STAR_PATH="M12 2l2.9 6.3 6.9.6-5.2 4.6 1.6 6.8L12 17.3 5.8 20.9l1.6-6.8L2.2 8.9l6.9-.6L12 2z";
+function teamStars(n,idx){
+  const full=Math.floor(n), half=(n%1)>=0.5;
+  let out=`<span class="tstars">`;
+  for(let i=1;i<=5;i++){
+    if(i<=full){
+      out+=`<svg viewBox="0 0 24 24" class="star-on"><path fill="currentColor" d="${STAR_PATH}"/></svg>`;
+    } else if(i===full+1 && half){
+      const id=`hg${idx}`;
+      out+=`<svg viewBox="0 0 24 24"><defs><linearGradient id="${id}"><stop offset="50%" stop-color="var(--acc)"/><stop offset="50%" stop-color="rgba(30,46,62,.15)"/></linearGradient></defs><path fill="url(#${id})" d="${STAR_PATH}"/></svg>`;
+    } else {
+      out+=`<svg viewBox="0 0 24 24" class="star-off"><path fill="currentColor" d="${STAR_PATH}"/></svg>`;
+    }
+  }
+  return out+`<b class="tnum">${n}</b></span>`;
+}
+function renderTeamRatings(){
+  document.getElementById('teamBody').innerHTML=TEAMS.map((t,i)=>`
+    <tr>
+      <td><div class="club"><b>${t.club}</b><span>${t.league} · ${t.note}</span></div></td>
+      <td>${teamStars(t.stars,i)}</td>
+      <td><span class="tier-badge t-${t.tier}">${t.tier}</span></td>
+    </tr>`).join("");
+}
+
+/* ====================================================================
+   STATE + PERSISTENCE (Tournament)
+==================================================================== */
+const SKEY="touchline_state_v2";
+let state={ roster:[], teams:[], bench:[], fixtures:[], view:"knowledge", ktab:"formations" };
+let swapSel=null; // {team, slot}
+let uid=Date.now();
+const nid=()=>(++uid).toString(36);
+
+function save(){
+  try{ localStorage.setItem(SKEY, JSON.stringify({
+    roster:state.roster, teams:state.teams, bench:state.bench, fixtures:state.fixtures
+  })); }catch(e){ /* storage unavailable — app still works in-session */ }
+}
+function load(){
+  try{
+    const raw=localStorage.getItem(SKEY);
+    if(!raw) return false;
+    const d=JSON.parse(raw);
+    state.roster=Array.isArray(d.roster)?d.roster:[];
+    state.teams=Array.isArray(d.teams)?d.teams:[];
+    state.bench=Array.isArray(d.bench)?d.bench:[];
+    state.fixtures=Array.isArray(d.fixtures)?d.fixtures:[];
+    return true;
+  }catch(e){ return false; }
+}
+
+/* ---------- ROSTER ---------- */
+const REGULARS=["Hashim","Waqas","Hamza","Mustafa","Bilal Majid","Rehan","Bilal Tariq","Asad","Zain","Umar","Soban","Arshad","Fasih"];
+function rosterHas(name){ return state.roster.some(p=>p.name.toLowerCase()===name.toLowerCase()); }
+function addPlayer(name){
+  name=(name||"").trim();
+  if(!name) return;
+  if(rosterHas(name)) return;
+  state.roster.push({id:nid(),name,active:true});
+  save(); renderRoster();
+}
+function toggleRegular(name){
+  if(rosterHas(name)) state.roster=state.roster.filter(p=>p.name.toLowerCase()!==name.toLowerCase());
+  else state.roster.push({id:nid(),name,active:true});
+  save(); renderRoster();
+}
+function addAllRegulars(){
+  REGULARS.forEach(n=>{ if(!rosterHas(n)) state.roster.push({id:nid(),name:n,active:true}); });
+  save(); renderRoster();
+}
+function renderRegulars(){
+  const c=document.getElementById('regChips'); if(!c) return;
+  const check='<svg class="ic ic-check" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M20 6 9 17l-5-5"/></svg>';
+  const x='<svg class="ic ic-x" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M18 6 6 18M6 6l12 12"/></svg>';
+  const plus='<svg class="ic" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 5v14M5 12h14"/></svg>';
+  c.innerHTML=REGULARS.map(n=>{
+    const on=rosterHas(n);
+    return `<button class="chip ${on?'added':''}" data-name="${escapeHTML(n)}" aria-pressed="${on}">${on?check+x:plus}<span>${escapeHTML(n)}</span></button>`;
+  }).join("");
+}
+function renderRoster(){
+  renderRegulars();
+  const a=document.getElementById('rosterArea');
+  if(!state.roster.length){
+    a.innerHTML=`<div class="empty">
+      <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M19 8v6M22 11h-6"/></svg>
+      <b>No players yet</b><p>Tap a regular above to add them, or type a guest name. Toggle anyone who's sitting out without deleting them.</p></div>`;
+    return;
+  }
+  const active=state.roster.filter(p=>p.active).length;
+  a.innerHTML=`<div class="rlist">`+state.roster.map((p,i)=>`
+    <div class="rrow ${p.active?'':'off'}" data-id="${p.id}">
+      <span class="num">${String(i+1).padStart(2,'0')}</span>
+      <span class="pname">${escapeHTML(p.name)}</span>
+      <span class="rtag">${p.active?'Active':'Out'}</span>
+      <button class="iconbtn toggle" title="Toggle active">${p.active
+        ? '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"/></svg>'
+        : '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6 6 18M6 6l12 12"/></svg>'}</button>
+      <button class="iconbtn del" title="Delete"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m2 0v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/></svg></button>
+    </div>`).join("")+`</div>
+    <div class="swap-hint" style="margin-top:13px"><span class="mono" style="color:var(--acc)">${active}</span> active · <span class="mono">${state.roster.length}</span> total</div>`;
+}
+
+/* ---------- TEAMS ---------- */
+function shuffle(arr){
+  const a=arr.slice();
+  for(let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; }
+  return a;
+}
+function generateTeams(){
+  const active=state.roster.filter(p=>p.active);
+  if(active.length<2){ flashTeams("Need at least 2 active players to make a duo."); return; }
+  const pool=shuffle(active);
+  const teams=[]; const bench=[];
+  while(pool.length>=2){ teams.push({id:nid(),players:[pool.shift(),pool.shift()]}); }
+  if(pool.length===1) bench.push(pool.shift());
+  state.teams=teams; state.bench=bench;
+  state.fixtures=[]; // teams changed → fixtures reset
+  swapSel=null;
+  save(); renderTeams(); renderFixtures(); renderStandings();
+}
+function teamLetter(i){ return String.fromCharCode(65+i); }
+function flashTeams(msg){
+  document.getElementById('teamsArea').innerHTML=`<div class="warn">
+    <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 9v4M12 17h.01M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0Z"/></svg>${msg}</div>`;
+}
+function onSlotTap(team,slot){
+  if(swapSel && swapSel.team===team && swapSel.slot===slot){ swapSel=null; renderTeams(); return; }
+  if(!swapSel){ swapSel={team,slot}; renderTeams(); return; }
+  // swap
+  const a=state.teams[swapSel.team].players[swapSel.slot];
+  state.teams[swapSel.team].players[swapSel.slot]=state.teams[team].players[slot];
+  state.teams[team].players[slot]=a;
+  swapSel=null; save(); renderTeams(); renderFixtures(); renderStandings();
+}
+function renderTeams(){
+  const a=document.getElementById('teamsArea');
+  if(!state.teams.length){
+    a.innerHTML=`<div class="empty">
+      <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+      <b>No teams drawn yet</b><p>Hit <b>Generate Teams</b> to shuffle the active roster into random 2v2 duos.</p></div>`;
+    return;
+  }
+  let html=`<div class="teamgrid">`+state.teams.map((t,ti)=>`
+    <div class="tcard">
+      <div class="tname">Team ${teamLetter(ti)}</div>
+      <div class="duo">${t.players.map((p,si)=>`
+        <div class="pslot ${swapSel&&swapSel.team===ti&&swapSel.slot===si?'sel':''}" data-team="${ti}" data-slot="${si}">
+          <span class="av" style="background:${avatarColor(p.name)}">${initials(p.name)}</span>
+          <b>${escapeHTML(p.name)}</b>
+        </div>`).join("")}</div>
+    </div>`).join("")+`</div>
+    <div class="swap-hint">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m17 2 4 4-4 4M3 11V9a4 4 0 0 1 4-4h14M7 22l-4-4 4-4M21 13v2a4 4 0 0 1-4 4H3"/></svg>
+      Vetoing the draw? Tap any two players to swap them.
+    </div>`;
+  if(state.bench.length){
+    html+=`<div class="benchbar">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 2"/></svg>
+      On rotation this round: ${state.bench.map(p=>`<b>${escapeHTML(p.name)}</b>`).join(", ")} — sub them in next draw.</div>`;
+  }
+  a.innerHTML=html;
+}
+
+/* ---------- FIXTURES ---------- */
+function roundRobin(n){
+  const ids=[...Array(n).keys()];
+  if(ids.length%2!==0) ids.push(-1); // bye
+  const m=ids.length, rounds=[];
+  let list=ids.slice();
+  for(let r=0;r<m-1;r++){
+    const pairs=[];
+    for(let i=0;i<m/2;i++){
+      const x=list[i], y=list[m-1-i];
+      if(x!==-1 && y!==-1) pairs.push(r%2? [y,x]:[x,y]);
+    }
+    rounds.push(pairs);
+    list=[list[0], list[m-1], ...list.slice(1,m-1)];
+  }
+  return rounds;
+}
+function generateFixtures(){
+  if(state.teams.length<2){ document.getElementById('fixturesArea').innerHTML=`<div class="warn"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 9v4M12 17h.01M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0Z"/></svg>Generate at least two teams first.</div>`; return; }
+  const rounds=roundRobin(state.teams.length);
+  const fixtures=[];
+  rounds.forEach((pairs,ri)=>pairs.forEach(([a,b])=>{
+    fixtures.push({id:nid(),round:ri+1,a,b,sa:"",sb:""});
+  }));
+  state.fixtures=fixtures;
+  save(); renderFixtures(); renderStandings();
+}
+function teamName(i){ return state.teams[i]? `${state.teams[i].players[0].name} & ${state.teams[i].players[1].name}` : "—"; }
+function renderFixtures(){
+  const a=document.getElementById('fixturesArea');
+  if(!state.fixtures.length){
+    a.innerHTML=`<div class="empty">
+      <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
+      <b>No fixtures yet</b><p>Lock the teams, then hit <b>Generate Fixtures</b> for a full round-robin. Log scores and the table updates live.</p></div>`;
+    return;
+  }
+  const byRound={};
+  state.fixtures.forEach(f=>{ (byRound[f.round]=byRound[f.round]||[]).push(f); });
+  a.innerHTML=Object.keys(byRound).map(r=>`
+    <div class="round">
+      <div class="round-label">Round ${r}</div>
+      ${byRound[r].map(f=>{
+        const done=f.sa!=="" && f.sb!=="";
+        return `<div class="fixture ${done?'done':''}">
+          <div class="fteam home"><span class="tg">TEAM ${teamLetter(f.a)}</span><span class="pp">${escapeHTML(teamName(f.a))}</span></div>
+          <div class="score">
+            <input type="number" min="0" max="99" inputmode="numeric" data-fx="${f.id}" data-side="a" value="${f.sa}">
+            <span class="dash">–</span>
+            <input type="number" min="0" max="99" inputmode="numeric" data-fx="${f.id}" data-side="b" value="${f.sb}">
+          </div>
+          <div class="fteam away"><span class="tg">TEAM ${teamLetter(f.b)}</span><span class="pp">${escapeHTML(teamName(f.b))}</span></div>
+        </div>`;
+      }).join("")}
+    </div>`).join("");
+}
+function setScore(fxId,side,val){
+  const f=state.fixtures.find(x=>x.id===fxId); if(!f) return;
+  val=val.replace(/[^0-9]/g,"").slice(0,2);
+  if(side==="a") f.sa=val; else f.sb=val;
+  save(); renderStandings();
+}
+
+/* ---------- STANDINGS ---------- */
+function computeTable(){
+  const rows=state.teams.map((t,i)=>({i,P:0,W:0,D:0,L:0,GF:0,GA:0,GD:0,Pts:0}));
+  state.fixtures.forEach(f=>{
+    if(f.sa===""||f.sb==="") return;
+    const a=rows[f.a], b=rows[f.b]; if(!a||!b) return;
+    const ga=+f.sa, gb=+f.sb;
+    a.P++;b.P++; a.GF+=ga;a.GA+=gb; b.GF+=gb;b.GA+=ga;
+    if(ga>gb){a.W++;b.L++;a.Pts+=3;}
+    else if(ga<gb){b.W++;a.L++;b.Pts+=3;}
+    else{a.D++;b.D++;a.Pts++;b.Pts++;}
+  });
+  rows.forEach(r=>r.GD=r.GF-r.GA);
+  rows.sort((x,y)=> y.Pts-x.Pts || y.GD-x.GD || y.GF-x.GF || teamName(x.i).localeCompare(teamName(y.i)));
+  return rows;
+}
+function renderStandings(){
+  const a=document.getElementById('standingsArea');
+  if(!state.teams.length || !state.fixtures.length){ a.innerHTML=""; return; }
+  const rows=computeTable();
+  a.innerHTML=`
+    <div class="round-label" style="margin-bottom:11px">Live Standings</div>
+    <div class="stable"><table>
+      <thead><tr>
+        <th>#</th><th>Team</th><th>P</th><th>W</th><th>D</th><th>L</th><th>GF</th><th>GA</th><th>GD</th><th>Pts</th>
+      </tr></thead>
+      <tbody>${rows.map((r,idx)=>`
+        <tr>
+          <td class="pos ${idx<3?'p'+(idx+1):''}">${idx+1}</td>
+          <td class="tcell"><b>Team ${teamLetter(r.i)}</b><span>${escapeHTML(teamName(r.i))}</span></td>
+          <td class="mono">${r.P}</td><td class="mono">${r.W}</td><td class="mono">${r.D}</td><td class="mono">${r.L}</td>
+          <td class="mono">${r.GF}</td><td class="mono">${r.GA}</td>
+          <td class="mono gd ${r.GD>0?'pos-gd':r.GD<0?'neg-gd':''}">${r.GD>0?'+':''}${r.GD}</td>
+          <td class="mono pts">${r.Pts}</td>
+        </tr>`).join("")}</tbody>
+    </table></div>`;
+}
+
+/* ====================================================================
+   HELPERS
+==================================================================== */
+function escapeHTML(s){ return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+function initials(n){ const p=n.trim().split(/\s+/); return ((p[0]?.[0]||"")+(p[1]?.[0]||"")).toUpperCase()||n[0]?.toUpperCase()||"?"; }
+let _modalCb=null;
+function openConfirm(title,body,okLabel,cb){
+  document.getElementById('modalTitle').textContent=title;
+  document.getElementById('modalBody').textContent=body;
+  document.getElementById('modalOk').textContent=okLabel||'Confirm';
+  _modalCb=cb;
+  document.getElementById('modalScrim').hidden=false;
+}
+function closeConfirm(){ document.getElementById('modalScrim').hidden=true; _modalCb=null; }
+function avatarColor(n){ let h=0; for(const c of n) h=(h*31+c.charCodeAt(0))%360; return `hsl(${h} 48% 50%)`; }
+
+/* ====================================================================
+   EVENTS / WIRING
+==================================================================== */
+// main nav
+document.getElementById('mainNav').addEventListener('click',e=>{
+  const b=e.target.closest('button[data-view]'); if(!b) return;
+  state.view=b.dataset.view;
+  document.querySelectorAll('#mainNav button').forEach(x=>x.classList.toggle('on',x===b));
+  document.getElementById('view-knowledge').classList.toggle('on',state.view==='knowledge');
+  document.getElementById('view-tournament').classList.toggle('on',state.view==='tournament');
+  window.scrollTo({top:0,behavior:'smooth'});
+});
+// knowledge subtabs
+document.getElementById('ksubtabs').addEventListener('click',e=>{
+  const b=e.target.closest('button[data-k]'); if(!b) return;
+  const k=b.dataset.k;
+  document.querySelectorAll('#ksubtabs button').forEach(x=>x.classList.toggle('on',x===b));
+  ['formations','skills','teams'].forEach(p=>document.getElementById('kpane-'+p).classList.toggle('on',p===k));
+});
+// skills filter
+document.getElementById('skillSearch').addEventListener('input',e=>{ skillFilter.q=e.target.value; renderSkills(); });
+document.getElementById('starFilter').addEventListener('click',e=>{
+  const b=e.target.closest('button[data-s]'); if(!b) return;
+  skillFilter.star=b.dataset.s;
+  document.querySelectorAll('#starFilter button').forEach(x=>x.classList.toggle('on',x===b));
+  renderSkills();
+});
+// controller layout toggle
+document.getElementById('padToggle').addEventListener('click',e=>{
+  const b=e.target.closest('button[data-pad]'); if(!b) return;
+  pad=b.dataset.pad;
+  document.querySelectorAll('#padToggle button').forEach(x=>x.classList.toggle('on',x===b));
+  try{ localStorage.setItem('touchline_pad', pad); }catch(_){}
+  renderSkills();
+});
+// confirm modal
+document.getElementById('modalCancel').addEventListener('click',closeConfirm);
+document.getElementById('modalOk').addEventListener('click',()=>{ const cb=_modalCb; closeConfirm(); if(cb) cb(); });
+document.getElementById('modalScrim').addEventListener('click',e=>{ if(e.target.id==='modalScrim') closeConfirm(); });
+document.addEventListener('keydown',e=>{ if(e.key==='Escape' && !document.getElementById('modalScrim').hidden) closeConfirm(); });
+// roster
+const nameInput=document.getElementById('playerName');
+document.getElementById('addPlayer').addEventListener('click',()=>{ addPlayer(nameInput.value); nameInput.value=""; nameInput.focus(); });
+nameInput.addEventListener('keydown',e=>{ if(e.key==='Enter'){ addPlayer(nameInput.value); nameInput.value=""; } });
+document.getElementById('regChips').addEventListener('click',e=>{
+  const chip=e.target.closest('.chip'); if(!chip) return;
+  toggleRegular(chip.dataset.name);
+});
+document.getElementById('addAllReg').addEventListener('click',addAllRegulars);
+document.getElementById('rosterArea').addEventListener('click',e=>{
+  const row=e.target.closest('.rrow'); if(!row) return;
+  const id=row.dataset.id;
+  if(e.target.closest('.del')){ state.roster=state.roster.filter(p=>p.id!==id); save(); renderRoster(); }
+  else if(e.target.closest('.toggle')){ const p=state.roster.find(p=>p.id===id); if(p){p.active=!p.active; save(); renderRoster();} }
+});
+document.getElementById('clearRoster').addEventListener('click',()=>{
+  if(!state.roster.length && !state.teams.length && !state.fixtures.length) return;
+  openConfirm('Clear everything?','This wipes the roster, teams, fixtures and the live table for tonight. It can\u2019t be undone.','Clear All',()=>{
+    state.roster=[]; state.teams=[]; state.bench=[]; state.fixtures=[]; swapSel=null;
+    save(); renderRoster(); renderTeams(); renderFixtures(); renderStandings();
+  });
+});
+document.getElementById('loadRoster').addEventListener('click',()=>{
+  if(load()){ renderRoster(); renderTeams(); renderFixtures(); renderStandings(); }});
+// teams
+document.getElementById('genTeams').addEventListener('click',generateTeams);
+document.getElementById('teamsArea').addEventListener('click',e=>{
+  const slot=e.target.closest('.pslot'); if(!slot) return;
+  onSlotTap(+slot.dataset.team,+slot.dataset.slot);
+});
+// fixtures
+document.getElementById('genFixtures').addEventListener('click',generateFixtures);
+document.getElementById('fixturesArea').addEventListener('input',e=>{
+  const inp=e.target.closest('input[data-fx]'); if(!inp) return;
+  setScore(inp.dataset.fx, inp.dataset.side, inp.value);
+});
+
+/* ====================================================================
+   BOOT
+==================================================================== */
+renderFormations();
+try{ const p=localStorage.getItem('touchline_pad'); if(p==='ps'||p==='xbox'){ pad=p;
+  document.querySelectorAll('#padToggle button').forEach(x=>x.classList.toggle('on',x.dataset.pad===pad)); } }catch(_){}
+renderSkills();
+renderTeamRatings();
+load();
+renderRoster();
+renderTeams();
+renderFixtures();
+renderStandings();
+</script>
+</body>
+</html>
